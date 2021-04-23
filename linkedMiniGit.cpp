@@ -103,7 +103,6 @@ void Git::add() {
     // if first file added in linkedList
     if (currCom->head == NULL) {
         currCom->head = addFile;
-        addFile->fileVersion = "0";
         addFile->fileName = filename + "_" + addFile->fileVersion;
     // all other cases
     } else {
@@ -112,7 +111,6 @@ void Git::add() {
             tempPrev = tempS;
             tempS = tempS->next; 
         }
-        addFile->fileVersion = "0";
         addFile->fileName = filename + "_" + addFile->fileVersion;
         tempPrev->next = addFile;
     }
@@ -149,8 +147,36 @@ void Git::remove() {
         }
     }
 
+
+
 }
+
+// void copy_to_repo(string filename) {
+//     ifstream in;
+//     ofstream out;
+//     string line;
+//     in.open(filename);
+//     out.open(filename);
+//     while(getline(in, line)) {
+//         out << line;
+//     }
+// }
+
 int Git::commit() {
+    doublyNode* currCom = getCurrCommit(comHead);
+    singlyNode* tempS = currCom->head;
+    doublyNode* check = comHead;
+    singlyNode* checkS = NULL;
+    while (check->next != NULL) {
+        checkS = check->head;
+        if (tempS->fileName != checkS->fileName) {
+
+        }
+    }
+    // doublyNode* newCom = new doublyNode();
+    // newCom->previous = currCom;
+    // newCom->next = NULL;
+    
 
 }
 void Git::checkout() {
