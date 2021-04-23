@@ -24,6 +24,7 @@ bool isFileInSLL(singlyNode* head, string filename) {
         if (head->fileName == filename) {
             return true;
         }
+        head = head->next;
     }
     return false;
 }
@@ -99,11 +100,14 @@ void Git::add() {
     addFile->next = NULL;
     tempS = currCom->head;
     singlyNode* tempPrev = NULL;
+    // if first file added in linkedList
     if (currCom->head == NULL) {
         currCom->head = addFile;
         addFile->fileVersion = "0";
         addFile->fileName = filename + "_" + addFile->fileVersion;
+    // all other cases
     } else {
+    // finds last node in LL and its previous node
         while (tempS !=  NULL) {
             tempPrev = tempS;
             tempS = tempS->next; 
@@ -114,6 +118,36 @@ void Git::add() {
     }
 }
 void Git::remove() {
+    string filename;
+    cout << "Enter the name of the file to be deleted:" << endl;
+    cin >> filename;
+    doublyNode* currCom = getCurrCommit(comHead);
+    singlyNode* tempS = currCom->head;
+    singlyNode* tempPrev = NULL;
+    while (tempS != NULL) {
+        if (tempS->fileName == filename) {
+            break;
+        }
+        tempPrev = tempS;
+        tempS = tempS->next;
+    }
+    if (tempS == NULL) {
+        cout << "File not found." << endl;
+    } else {
+        if (tempS->next == NULL) {
+            tempPrev->next == NULL;
+            delete tempS;
+            tempS = nullptr;
+        } else if (comHead->head == tempS){
+            comHead->head == tempS->next;
+            delete tempS;
+            tempS = nullptr;
+        } else {
+            tempPrev->next = tempS->next;
+            delete tempS;
+            tempS = nullptr;
+        }
+    }
 
 }
 int Git::commit() {
