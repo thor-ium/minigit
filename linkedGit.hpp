@@ -8,7 +8,7 @@ using namespace std;
 
 struct singlyNode {
     string fileName;
-    string fileVersion;
+    string fileVersion = "0";
     singlyNode* next;
 };
 
