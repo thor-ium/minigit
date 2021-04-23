@@ -102,27 +102,16 @@ void Git::add() {
     if (currCom->head == NULL) {
         currCom->head = addFile;
         addFile->fileVersion = "0";
-        addFile->fileName = filename + addFile->fileVersion;
+        addFile->fileName = filename + "_" + addFile->fileVersion;
     } else {
         while (tempS !=  NULL) {
             tempPrev = tempS;
-            tempS = tempS->next;
-            
+            tempS = tempS->next; 
         }
-        
-        
-
-
+        addFile->fileVersion = "0";
+        addFile->fileName = filename + "_" + addFile->fileVersion;
+        tempPrev->next = addFile;
     }
-    
-    
-    
-    
-
-
-
-
-
 }
 void Git::remove() {
 
