@@ -30,7 +30,7 @@ bool isFileInSLL(singlyNode* head, string filename) {
 }
 
 void Git::init() {
-    fs::create_directiory(".miniGit");
+    fs::create_directory(".miniGit");
     doublyNode* curr = new doublyNode();
     curr->commitNumber = 0;
     comHead = curr;
@@ -74,11 +74,99 @@ bool areFilesIdentical(singlyNode* existingFile, string newFile) {
     return true;
 }
 
+int split(string stringSplit, char splitUpPoint, string array[], int size)
+{
+    int initial = 0;
+    int splitPointASCII = int(splitUpPoint);
+    int i = 0 ;
+    int j = 0;
+    int currentPosition = 0;
+    int length = 0;
+    int currIndex = 0;
+    int splitCount;
+    stringSplit = stringSplit;
+    string word = "";
+    // checks that string has a length
+    if (stringSplit.length() == 0)
+    {
+        return 0;
+    } else 
+    {
+        //counts number of splits
+        for (j = 0; j < stringSplit.length(); j++)
+        {
+            if (int(stringSplit[j]) != splitPointASCII)
+            {
+
+            } else
+            {
+                splitCount++;
+            }
+            
+        }
+        // if there is at least one split...
+        if (splitCount >= 1)
+        {
+            // fixes errors with no split on last word in string
+            stringSplit = stringSplit + splitUpPoint;
+            for ( i = 0; i < stringSplit.length(); i++)
+            {
+                // when the current index of the string doesn't equal a split point
+                if (int(stringSplit[i]) != int(splitUpPoint))
+                {
+                    // adds the characters to a variable string ( before a split point)
+                    word = word + stringSplit[i];
+                    
+                    
+                }
+                else 
+                {
+                    /* if split detected, takes word and assigns it to an array index,
+                     * changes the index and resets the word to an empty string
+                    */
+                    array[currIndex] = word;
+                    currIndex++;
+                    word = "";
+                }
+            }
+            // if the final number of indices is larger than the size, return -1
+            if (size < currIndex)
+            {
+                return -1;
+            } else 
+            {
+                return currIndex;
+            }
+        // if no splits are detected output the original string in the 0 index of the array
+        } else if (splitCount == 0)
+        {
+            array[0] = stringSplit;
+            return 1;
+        } else
+        {
+            return 1;
+        }
+    }
+}
+
+string copy(string file, string newFile) {
+    string line;
+    ifstream in;
+    ofstream out;
+    in.open(file);
+    while(getline(in, line)) {
+            
+
+        }
+}
+
 void Git::add() {
     // asks for filename until valid file in directory
     string filename = getFileName();
     singlyNode* tempS = NULL;
-
+    ifstream in;
+    ofstream out;
+    string line;
     doublyNode* tempD = comHead;
     int newFileVers = 0;
     // traverses commit LL
@@ -102,8 +190,10 @@ void Git::add() {
     singlyNode* tempPrev = NULL;
     // if first file added in linkedList
     if (currCom->head == NULL) {
+        in.open(filename);
         currCom->head = addFile;
-        addFile->fileName = filename + "_" + addFile->fileVersion;
+        addFile->fileName = addFile->fileVersion + "_" + filename;
+
     // all other cases
     } else {
     // finds last node in LL and its previous node
@@ -169,8 +259,8 @@ int Git::commit() {
     singlyNode* checkS = NULL;
     while (check->next != NULL) {
         checkS = check->head;
-        if (tempS->fileName != checkS->fileName) {
-
+        if (tempS->fileName == checkS->fileName) {
+            
         }
     }
     // doublyNode* newCom = new doublyNode();
