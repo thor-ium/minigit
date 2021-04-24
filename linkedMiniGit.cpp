@@ -30,13 +30,14 @@ bool isFileInSLL(singlyNode* head, string filename) {
     return false;
 }
 
-void Git::init() {
+bool Git::init() {
     fs::create_directory(".miniGit");
     doublyNode* curr = new doublyNode();
     curr->commitNumber = 0;
     comHead = curr;
     curr->next = NULL;
     curr->previous = NULL;
+    return true;
 }
 string getFileName() {
     string filename;
@@ -221,6 +222,7 @@ int Git::commit() {
             copy(tempS->fileName, tempS->fileName + "_" + to_string(tempS->fileVersion++));
 
          }
+         cout << "A" << endl;
         //     if (!areFilesIdentical(tempS, checkS->fileName)) {
         //         cout << "B" << endl;
                 

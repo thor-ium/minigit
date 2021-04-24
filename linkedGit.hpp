@@ -8,7 +8,7 @@ using namespace std;
 
 struct singlyNode {
     string fileName;
-    string fileVersion = "0";
+    int fileVersion = 0;
     singlyNode* next;
 };
 
@@ -26,7 +26,7 @@ class Git {
     public:
         Git();
         ~Git();
-        void init();
+        bool init();
         void add();
         void remove();
         int commit();
