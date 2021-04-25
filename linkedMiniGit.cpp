@@ -16,6 +16,102 @@ Git::Git() {
 }
 Git::~Git() {
 
+}
+
+int split(string stringSplit, char splitUpPoint, string array[], int size)
+{
+    int initial = 0;
+    int splitPointASCII = int(splitUpPoint);
+    int i = 0 ;
+    int j = 0;
+    int currentPosition = 0;
+    int length = 0;
+    int currIndex = 0;
+    int splitCount;
+    stringSplit = stringSplit;
+    string word = "";
+    // checks that string has a length
+    if (stringSplit.length() == 0)
+    {
+        return 0;
+    } else 
+    {
+        //counts number of splits
+        for (j = 0; j < stringSplit.length(); j++)
+        {
+            if (int(stringSplit[j]) != splitPointASCII)
+            {
+
+            } else
+            {
+                splitCount++;
+            }
+            
+        }
+        // if there is at least one split...
+        if (splitCount >= 1)
+        {
+            // fixes errors with no split on last word in string
+            stringSplit = stringSplit + splitUpPoint;
+            for ( i = 0; i < stringSplit.length(); i++)
+            {
+                // when the current index of the string doesn't equal a split point
+                if (int(stringSplit[i]) != int(splitUpPoint))
+                {
+                    // adds the characters to a variable string ( before a split point)
+                    word = word + stringSplit[i];
+                    
+                    
+                }
+                else 
+                {
+                    /* if split detected, takes word and assigns it to an array index,
+                     * changes the index and resets the word to an empty string
+                    */
+                    array[currIndex] = word;
+                    currIndex++;
+                    word = "";
+                }
+            }
+            // if the final number of indices is larger than the size, return -1
+            if (size < currIndex)
+            {
+                return -1;
+            } else 
+            {
+                return currIndex;
+            }
+        // if no splits are detected output the original string in the 0 index of the array
+        } else if (splitCount == 0)
+        {
+            array[0] = stringSplit;
+            return 1;
+        } else
+        {
+            return 1;
+        }
+    }
+}
+
+void debug_printLL(singlyNode* A) {
+    while (A != NULL) {
+        cout << A->fileName << " -> ";
+        A = A->next;
+    }
+    cout << endl;
+}
+
+int hashAddress(string filename, int table_size) {
+    int hash = 0;
+    ifstream in;
+    string line;
+    in.open(filename);
+    while(getline(in, line)) {
+        for (int i = 0; i < line.length(); i++) {
+            hash = hash + (int) line[i];
+        }
+    }
+    return hash % table_size;
 
 
 }
@@ -31,7 +127,7 @@ bool isFileInSLL(singlyNode* head, string filename) {
 }
 
 bool Git::init() {
-    fs::create_directory(".miniGit");
+    fs::create_directory(".minigit");
     doublyNode* curr = new doublyNode();
     curr->commitNumber = 0;
     comHead = curr;
@@ -53,8 +149,14 @@ string getFileName() {
 
 }
 doublyNode* getCurrCommit(doublyNode* comHead) {
-    while(comHead->next != NULL) {
+    int i = 0;
+    if (comHead->next ==  NULL) {
+        return comHead;
+    }
+    while(comHead != NULL) {
         comHead = comHead->next;
+        i++;
+        cout <<i << endl;
     }
     return comHead;
 }
@@ -94,13 +196,14 @@ void copy(string file, string newFile) {
     string line;
     ifstream in;
     ofstream out;
+    int i = 0;
     in.open(file);
     string curr_direct = fs::current_path();
     fs::current_path(".minigit");
     out.open(newFile);
     while(getline(in, line)) {
-            out << line << endl;
-        }
+        out << line << endl;
+    }
     fs::current_path(curr_direct);
 }
 
@@ -113,20 +216,17 @@ void Git::add() {
     string line;
     doublyNode* tempD = comHead;
     int newFileVers = 0;
-    // traverses commit LL
-    while (tempD != NULL) {
-            tempS = tempD->head;
-            // traverses file LL
-            while (tempS != NULL) {
-                // checks if file already excists in LL
-                if (tempS->fileName == filename && areFilesIdentical(tempS, filename)) {
-                    cout << "Filename '" << filename << "' already taken!" << endl;
-                    return;
-                }
-                tempS = tempS->next;
+    // traverses file LL
+    while (tempS != NULL) {
+        // checks if file already exists in LL
+
+        if (tempS->fileName == filename + "_" + to_string(tempS->fileVersion)) {
+            cout << "Filename '" << filename << "' already taken!" << endl;
+            return;
         }
-        tempD = tempD->next;
+        tempS = tempS->next;
     }
+    
     doublyNode* currCom = getCurrCommit(comHead);
     singlyNode* addFile = new singlyNode();
     addFile->next = NULL;
@@ -135,21 +235,21 @@ void Git::add() {
     // if first file added in linkedList
     if (currCom->head == NULL) {
         currCom->head = addFile;
-        addFile->fileName = filename;
+        addFile->fileName = filename + "_" + to_string(addFile->fileVersion);
 
     // all other cases
     } else {
-        cout << "s" << endl;
     // finds last node in LL and its previous node
         while (tempS !=  NULL) {
             tempPrev = tempS;
             tempS = tempS->next; 
         }
-        addFile->fileName = filename;
+        addFile->fileName = filename + "_" + to_string(addFile->fileVersion);
         tempPrev->next = addFile;
     }
 }
 void Git::remove() {
+    string curr_direct;
     string filename;
     cout << "Enter the name of the file to be deleted:" << endl;
     cin >> filename;
@@ -167,23 +267,30 @@ void Git::remove() {
         cout << "File not found." << endl;
     } else {
         if (tempS->next == NULL) {
+            curr_direct = fs::current_path();
             fs::current_path(".minigit");
             fs::remove(filename);
-            tempPrev->next == NULL;
+            tempPrev->next = NULL;
             delete tempS;
             tempS = nullptr;
+            fs::current_path(curr_direct);
         } else if (comHead->head == tempS){
+            curr_direct = fs::current_path();
             fs::current_path(".minigit");
             fs::remove(filename);
-            comHead->head == tempS->next;
+            comHead->head = tempS->next;
             delete tempS;
             tempS = nullptr;
+            fs::current_path(curr_direct);
         } else {
+            curr_direct = fs::current_path();
             fs::current_path(".minigit");
             fs::remove(filename);
             tempPrev->next = tempS->next;
             delete tempS;
             tempS = nullptr;
+            fs::current_path(curr_direct);
+
         }
     }
 
@@ -191,54 +298,83 @@ void Git::remove() {
 
 }
 
-void debug_printLL(singlyNode* A) {
-    while (A != NULL) {
-        cout << A->fileName << " -> ";
-        A = A->next;
+singlyNode* copyLL(singlyNode* head_O) {
+    if (head_O == NULL) {
+        return NULL;
     }
-    cout << endl;
+    singlyNode* clone = new singlyNode();
+    clone->fileName = head_O->fileName;
+    clone->fileVersion = head_O->fileVersion;
+    clone->next = copyLL(head_O->next);
+    return clone;
 }
 
 int Git::commit() {
     
-    string tempName;
-    doublyNode* currCom = getCurrCommit(comHead);
-    singlyNode* tempS = currCom->head;
-    doublyNode* check = comHead;
-    singlyNode* checkS = NULL;
-    debug_printLL(tempS);
-    while (tempS != NULL) {
-        checkS = check->head;
-        if (tempS->fileName == checkS->fileName) {
-            cout << "A" << endl;
-            if (areFilesIdentical(tempS, checkS->fileName)) {
-                cout << "C" << endl;
-                copy(tempS->fileName, tempS->fileName + "_" + to_string(tempS->fileVersion));
-            } else {
-                cout << "B" << endl;
-                copy(tempS->fileName, tempS->fileName + "_" + to_string(tempS->fileVersion++));
-            }
-         } else {
-            copy(tempS->fileName, tempS->fileName + "_" + to_string(tempS->fileVersion++));
-
-         }
-         cout << "A" << endl;
-        //     if (!areFilesIdentical(tempS, checkS->fileName)) {
-        //         cout << "B" << endl;
-                
-        //         tempS->fileVersion++;
-        //         tempName = tempS->fileName + "_" + to_string(tempS->fileVersion);
-        //         copy(tempS->fileName, tempName);
-        //     }
-        // }
-        tempS = tempS->next;
-        checkS = checkS->next;
-
-    }
-    // doublyNode* newCom = new doublyNode();
-    // newCom->previous = currCom;
-    // newCom->next = NULL;
     
+    // get current and previous heads of SLLs
+    string currComfile[2];
+    string prevComfile[2];
+    doublyNode* currentCommit = getCurrCommit(comHead);
+    singlyNode* SLL_currCom = currentCommit->head;
+    if (currentCommit != comHead) {
+        cout << "next commit" << endl;
+        doublyNode* prevCommit = currentCommit->previous;
+        singlyNode* SLL_prevCom = prevCommit->head;
+        int curr = 0, prev = 0;
+        while (SLL_currCom != NULL) {
+            curr++;
+            SLL_currCom = SLL_currCom->next;
+        }
+        while (SLL_prevCom != NULL) {
+            prev++;
+            SLL_prevCom = SLL_prevCom->next;
+        }
+        SLL_currCom = currentCommit->head;
+        SLL_prevCom = prevCommit->head;
+        if (curr == prev) {
+            while (SLL_currCom != NULL) {
+                split(SLL_currCom->fileName, '_', currComfile, 2);
+                split(SLL_prevCom->fileName, '_', prevComfile, 2);
+                if (currComfile[0] == prevComfile[0]) {
+                    if (hashAddress(currComfile[0], 100) == hashAddress(prevComfile[0], 100)) {
+                        cout << "Current commit is up to date" << endl;
+                    } else {
+                        SLL_currCom->fileVersion = SLL_prevCom->fileVersion + 1;
+                        copy(currComfile[0], currComfile[0] + "_" + to_string(SLL_currCom->fileVersion));
+                    }
+                    SLL_currCom = SLL_currCom->next;
+                    SLL_prevCom = SLL_prevCom->next;
+                } else {
+                    copy(currComfile[0], currComfile[0] + "_" + to_string(SLL_currCom->fileVersion));
+                }
+            }
+        }
+    } else {
+        // add files to .minigit
+        cout << "First commit" << endl;
+        while (SLL_currCom != NULL) {
+            split(SLL_currCom->fileName, '_', currComfile, 2);
+            copy(currComfile[0], currComfile[0] + "_" + to_string(SLL_currCom->fileVersion));
+            SLL_currCom = SLL_currCom->next;
+        }
+    }
+    SLL_currCom = currentCommit->head;
+    doublyNode* nextCom = new doublyNode();
+    nextCom->previous = currentCommit;
+    nextCom->next = NULL;
+    nextCom->commitNumber = currentCommit->commitNumber + 1;
+    cout << "Current commit: ";
+    debug_printLL(SLL_currCom);
+    SLL_currCom = currentCommit->head;
+    nextCom->head = copyLL(SLL_currCom);
+    cout << "Next commit: ";
+    debug_printLL(nextCom->head);
+
+
+
+
+
 
 }
 void Git::checkout() {
