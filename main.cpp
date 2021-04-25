@@ -66,4 +66,6 @@ int main() {
 
         }
     }
+
+    cout << "Goodbye!" << endl;
 }
