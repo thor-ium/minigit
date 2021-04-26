@@ -19,6 +19,7 @@ void menu() {
 
 int main() {
     Git G;
+    bool tf = false;
     int choice = 0;
     while (choice != 6) {
         menu();
@@ -33,31 +34,31 @@ int main() {
         switch (choice)
         {
         case 1:
-            G.init();
+           tf = G.init();
             break;
         case 2:
-            if (!fs::exists(".minigit")) {
+            if (!tf) {
                 cout << "minigit has not been initialized." << endl;
                 break;
             }
             G.add();
             break;
         case 3:
-            if (!fs::exists(".minigit")) {
+            if (!tf) {
                 cout << "minigit has not been initialized." << endl;
                 break;
             }
             G.remove();
             break;
         case 4:
-            if (!fs::exists(".minigit")) {
+            if (!tf) {
                 cout << "minigit has not been initialized." << endl;
                 break;
             }
             G.commit(); 
             break;
         case 5:
-            if (!fs::exists(".minigit")) {
+            if (!tf) {
                 cout << "minigit has not been initialized." << endl;
                 break;
             }

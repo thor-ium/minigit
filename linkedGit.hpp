@@ -8,7 +8,7 @@ using namespace std;
 
 struct singlyNode {
     string fileName;
-    int fileVersion = 0;
+    string fileVersion;
     singlyNode* next;
 };
 
@@ -22,14 +22,14 @@ struct doublyNode {
 class Git {
     private:
         singlyNode* head;
-        doublyNode* comHead;
+        doublyNode* comHead = NULL;
     public:
         Git();
         ~Git();
         bool init();
         void add();
         void remove();
-        int commit();
+        void commit();
         void checkout();
 };
 
