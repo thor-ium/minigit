@@ -21,8 +21,7 @@ struct doublyNode {
 
 class Git {
     private:
-        singlyNode* head;
-        doublyNode* comHead = NULL;
+         doublyNode* comHead = NULL;
     public:
         Git();
         ~Git();

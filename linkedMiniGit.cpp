@@ -9,15 +9,20 @@ namespace fs = std::filesystem;
 
 #include "linkedGit.hpp"
 #include <vector>
-
+// constructor
 Git::Git() {
     fs::remove_all(".minigit");
     fs::create_directory(".minigit");
 }
+// deconstructor
 Git::~Git() {
+    fs::remove_all(".minigt");
+    comHead = NULL;
+    delete comHead;
+    comHead = nullptr;
 
 }
-
+// function used to split filenames at "." 
 int split(string stringSplit, char splitUpPoint, string array[], int size)
 {
     int initial = 0;
@@ -93,6 +98,7 @@ int split(string stringSplit, char splitUpPoint, string array[], int size)
     }
 }
 
+// function to make sure SLLs formed correctly
 void debug_printLL(singlyNode* A) {
     while (A != NULL) {
         cout << A->fileName << " -> ";
@@ -101,12 +107,14 @@ void debug_printLL(singlyNode* A) {
     cout << endl;
 }
 
+// function used to form hash address for given file and table size
 int hashAddress(string filename, int table_size) {
     int hash = 0;
     ifstream in;
     string line;
     string curr_direc = fs::current_path();
     in.open(filename);
+    // if file is in .minigit directory, switch directories
     if (in.fail()) {
         fs::current_path(".minigit");
         in.open(filename);
@@ -122,23 +130,15 @@ int hashAddress(string filename, int table_size) {
             }
         }
     }
-    
+    // go back to main directory
     fs::current_path(curr_direc);
     return hash % table_size;
 
 
 }
 
-bool isFileInSLL(singlyNode* head, string filename) {
-    while(head != NULL) {
-        if (head->fileName == filename) {
-            return true;
-        }
-        head = head->next;
-    }
-    return false;
-}
-
+// initialize .minigit repository and create first DLL ndoe
+// bool function in order to check if initialized
 bool Git::init() {
     fs::create_directory(".minigit");
     doublyNode* curr = new doublyNode();
@@ -149,6 +149,7 @@ bool Git::init() {
     comHead = curr;
     return true;
 }
+// functio to check if filename does not exist in main directory
 string getFileName() {
     string filename;
     cout << "Enter a filename: " << endl;
@@ -162,6 +163,8 @@ string getFileName() {
     return filename;
 
 }
+
+// function to find current commit for use in traversing
 doublyNode* getCurrCommit(doublyNode* comHead) {
     doublyNode* curr = comHead;
     while (curr->next != NULL) {
@@ -170,6 +173,8 @@ doublyNode* getCurrCommit(doublyNode* comHead) {
     return curr;
 }
 
+
+// function that inserts next commit node at the end of the DLL
 doublyNode* insertLast(doublyNode* head, doublyNode* prev, int comitnumber) {
     doublyNode* temp = new doublyNode();
     temp->commitNumber = comitnumber + 1;
@@ -198,7 +203,6 @@ void copy(string file, string newFile) {
     string line;
     ifstream in;
     ofstream out;
-    int i = 0;
     in.open(file);
     string curr_direct = fs::current_path();
     fs::current_path(".minigit");
@@ -208,6 +212,8 @@ void copy(string file, string newFile) {
     }
     fs::current_path(curr_direct);
 }
+
+// function to properly assign file version. used only in add() function
 string getFileVersion(doublyNode* curr, string filename) {
     singlyNode* currSLLhead;
     string splitFilename[3];
@@ -229,6 +235,9 @@ string getFileVersion(doublyNode* curr, string filename) {
     }
     return "0";
 }
+
+// fucntion to add file to current SLL that will then be set 
+// as data memeber of DLL in commit() function
 void Git::add() {
     // asks for filename until valid file in directory
     string filename = getFileName();
@@ -260,6 +269,8 @@ void Git::add() {
     }
     debug_printLL(tempD->head);
 }
+
+// function to remove a file from current SLL before being committed
 void Git::remove() {
     string curr_direct;
     string filename;
@@ -291,7 +302,7 @@ void Git::remove() {
     }
 }
 
-
+// function used in commit() to check if file has ever been committed
 bool existsNowhere(doublyNode* comhead, singlyNode* curr) {
     if (comhead->previous == NULL ) {
         cout << "im so " << endl;
@@ -319,6 +330,7 @@ bool existsNowhere(doublyNode* comhead, singlyNode* curr) {
     return true;
 }
 
+// recursive function to copyLL to next commit
 singlyNode* copyLL(singlyNode* head_O) {
     if (head_O == NULL) {
         return NULL;
@@ -330,6 +342,17 @@ singlyNode* copyLL(singlyNode* head_O) {
     return clone;
 }
 
+/* 
+  the commit function takes the current SLL and checks if
+  it has been committed in it's current version. If it hasn't
+  it will copy the file with the name of the file 
+  to the ".minigit" repository in the following format:
+        filename: test.txt
+        (if first time committed or file unchanged) fileVersion: test.0.txt
+        (if test.txt is altered) fileVersion: test.1.txt
+    Finally, a new DLL node to represent the next commit is created for the
+    next time the add() function is executed
+*/
 void Git::commit() {
     
     doublyNode* currentCommit = getCurrCommit(comHead);
@@ -350,24 +373,27 @@ void Git::commit() {
     } else {
         prev_SLL = currentCommit->previous->head;
         debug_printLL(prev_SLL);
-        while (prev_SLL != NULL) {
-            cout << "prev_SLL:" << prev_SLL->fileVersion << endl;
-            cout << "curr_SLL:" << curr_SLL->fileVersion << endl;
-            if (prev_SLL->fileName == curr_SLL->fileName) {
-                if (hashAddress(prev_SLL->fileVersion, 100) != hashAddress(curr_SLL->fileName, 100)) {
-                    string temp[3];
-                    split(prev_SLL->fileVersion, '.', temp, 3);
-                    curr_SLL->fileVersion = temp[0] + "." + to_string(stoi(temp[1]) + 1) + "." + temp[2];
-                    cout << "to_string(stoi(temp[1]) + 1) : " << to_string(stoi(temp[1]) + 1) << endl;
-                    copy(curr_SLL->fileName, curr_SLL->fileVersion);
+        while (tempComHead != NULL) {
+            while (prev_SLL != NULL) {
+                cout << "prev_SLL:" << prev_SLL->fileVersion << endl;
+                cout << "curr_SLL:" << curr_SLL->fileVersion << endl;
+                if (prev_SLL->fileName == curr_SLL->fileName) {
+                    if (hashAddress(prev_SLL->fileVersion, 100) != hashAddress(curr_SLL->fileName, 100)) {
+                        string temp[3];
+                        split(prev_SLL->fileVersion, '.', temp, 3);
+                        curr_SLL->fileVersion = temp[0] + "." + to_string(stoi(temp[1]) + 1) + "." + temp[2];
+                        cout << "to_string(stoi(temp[1]) + 1) : " << to_string(stoi(temp[1]) + 1) << endl;
+                        copy(curr_SLL->fileName, curr_SLL->fileVersion);
+                    }
+                }
+                prev_SLL = prev_SLL->next;
+                if (curr_SLL->next != NULL) {
+                    curr_SLL = curr_SLL->next;
+                } else {
+                    break;
                 }
             }
-            prev_SLL = prev_SLL->next;
-            if (curr_SLL->next != NULL) {
-                curr_SLL = curr_SLL->next;
-            } else {
-                break;
-            }
+            tempComHead = tempComHead->next;
         }
         curr_SLL = currentCommit->head;
         tempComHead = comHead;
@@ -380,6 +406,68 @@ void Git::commit() {
     }
     doublyNode* nextCom = insertLast(comHead, currentCommit, currentCommit->commitNumber);
 }
-void Git::checkout() {
 
+// copyCheck is the inverse of the copy() function.
+// instead of copying a file from the main directory to .minigit,
+// it copies a file from .minigit to the main directory
+// Function used in checkout(). 
+void copyCheck(string fileVersion, string file) {
+    string line;
+    ifstream in;
+    ofstream out;
+    string curr_direct = fs::current_path();
+    fs::current_path(".minigit");
+    in.open(fileVersion);
+    fs::current_path(curr_direct);
+    out.open(file);
+    while(getline(in, line)) {
+        out << line << endl;
+    }
+
+}
+
+/* function searches for a specified commit and restores that version of the file
+ * to the main directory. Utilizes copyCheck() function in order to copy back to 
+   main directory. 
+*/
+void Git::checkout() {
+    bool tf = false;
+    int comCheck = 0;
+    cout << "Enter commit number: " << endl;
+    cin >> comCheck;
+    singlyNode* checkS;
+    doublyNode* traverse_com = comHead;
+    doublyNode* currentCommit = getCurrCommit(comHead);
+    if (currentCommit->commitNumber == 0) {
+        cout << "first commit currently in progress, nothing to do." << endl;
+        return;
+    }
+    if (currentCommit->commitNumber == comCheck) {
+        cout << "Commit currently in progress, nothing to do." << endl;
+        return;
+    }
+    if (currentCommit->commitNumber < comCheck) {
+        cout << "Commit does not exist!" << endl;
+        return;
+    }
+    while (traverse_com != NULL) {
+        if (traverse_com->commitNumber == comCheck) {
+            break;
+        }
+        traverse_com = traverse_com->next;
+    }
+    if (traverse_com != NULL) {
+        checkS = traverse_com->head;
+    }    
+    while (checkS != NULL) {
+        if (hashAddress(checkS->fileVersion, 100) != hashAddress(checkS->fileName, 100)) {
+            copyCheck(checkS->fileVersion, checkS->fileName);
+        } else {
+            tf = true;
+        }
+        checkS = checkS->next;
+    } 
+    if (tf == true) {
+        cout << "Given commit: #" << traverse_com->commitNumber << " is the current version of files in main directory." << endl;
+    }
 }
