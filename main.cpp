@@ -28,7 +28,7 @@ int main() {
         {
             cin.clear();
             cin.ignore(10000, '\n');
-            cout<< "Invalid option, input must be a number between 1 and 3, please enter a valid option"<< endl;
+            cout<< "Invalid option, input must be a number between 1 and 6, please enter a valid option"<< endl;
             cin>> choice;
         }
         switch (choice)
