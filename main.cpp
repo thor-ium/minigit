@@ -69,4 +69,5 @@ int main() {
     }
 
     cout << "Goodbye!" << endl;
+    fs::remove_all(".minigit");
 }

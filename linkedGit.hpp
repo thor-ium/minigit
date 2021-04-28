@@ -6,12 +6,15 @@
 
 using namespace std;
 
+
+// file linked list
 struct singlyNode {
     string fileName;
     string fileVersion;
     singlyNode* next;
 };
 
+// commit Linked List
 struct doublyNode {
     int commitNumber;
     singlyNode* head;

@@ -101,7 +101,7 @@ int split(string stringSplit, char splitUpPoint, string array[], int size)
 // function to make sure SLLs formed correctly
 void debug_printLL(singlyNode* A) {
     while (A != NULL) {
-        cout << A->fileName << " -> ";
+        cout << A->fileVersion << " -> ";
         A = A->next;
     }
     cout << endl;
@@ -137,7 +137,7 @@ int hashAddress(string filename, int table_size) {
 
 }
 
-// initialize .minigit repository and create first DLL ndoe
+// initialize .minigit repository and create first DLL node
 // bool function in order to check if initialized
 bool Git::init() {
     fs::create_directory(".minigit");
@@ -182,7 +182,6 @@ doublyNode* insertLast(doublyNode* head, doublyNode* prev, int comitnumber) {
     temp->previous = prev;
 
     if (head == NULL) {
-        cout << "OOOOOH i forgot to set head of DLL to first commit" << endl;
         head = temp;
     } else {
         doublyNode* last = head;
@@ -198,7 +197,7 @@ doublyNode* insertLast(doublyNode* head, doublyNode* prev, int comitnumber) {
 
 
 
-// copies function into .minigit directory then returning to original directory
+// copies file into .minigit directory then returning to original directory
 void copy(string file, string newFile) {
     string line;
     ifstream in;
@@ -226,9 +225,8 @@ string getFileVersion(doublyNode* curr, string filename) {
     }
     while(currSLLhead != NULL) {
         if (filename == currSLLhead->fileName) {
-            cout << "oh?" << endl;
             split(currSLLhead->fileVersion, '.', splitFilename, 3);
-            return to_string(stoi(splitFilename[2]) + 1);
+            return to_string(stoi(splitFilename[1]) + 1);
 
         }
         currSLLhead = currSLLhead->next;
@@ -236,7 +234,7 @@ string getFileVersion(doublyNode* curr, string filename) {
     return "0";
 }
 
-// fucntion to add file to current SLL that will then be set 
+// function to add file to current SLL that will then be set 
 // as data memeber of DLL in commit() function
 void Git::add() {
     // asks for filename until valid file in directory
@@ -254,10 +252,10 @@ void Git::add() {
         tempD->head = tempS;
     } else {
         while (head_ != NULL) {
-            if (hashAddress(filename, 100) == hashAddress(head_->fileName, 100)) {
-                cout << "File: " << filename << " already exists." << endl;
-                return;
-            }
+            if (hashAddress(filename, 100) == hashAddress(head_->fileVersion, 100)) {
+                    cout << "File: " << filename << " already exists or is unedited." << endl;
+                    return;
+                }
             head_prev = head_;
             head_ = head_->next;
         }
@@ -267,7 +265,6 @@ void Git::add() {
         tempS->fileVersion = splittedFilename[0] + "." + getFileVersion(comHead, filename) + "." + splittedFilename[1];
         head_prev->next = tempS;
     }
-    debug_printLL(tempD->head);
 }
 
 // function to remove a file from current SLL before being committed
@@ -303,44 +300,84 @@ void Git::remove() {
 }
 
 // function used in commit() to check if file has ever been committed
-bool existsNowhere(doublyNode* comhead, singlyNode* curr) {
+bool existsNowhere(doublyNode* comhead, doublyNode* curr) {
+    bool tf = true;
+    int p = 0;
+    int c = 0;
+    singlyNode* curr_SLL = curr->head;
     if (comhead->previous == NULL ) {
-        cout << "im so " << endl;
         return true;
     }
-    cout << "Y" << endl;
     singlyNode* prev = comhead->previous->head;
-    cout << "X" << endl;
+    while (curr_SLL != NULL) {
+        c++;
+        curr_SLL = curr_SLL->next;
+    }
     while (comhead != NULL) {
-        cout << "42 mil" << endl;
         prev = comhead->previous->head;
-        cout << "went to ibiza" << endl;
+        
         while (prev != NULL) {
-            cout << "hmmm" << endl;
-            cout << "prev:" << prev->fileName << endl;
-            cout << "curr: " << curr->fileName << endl;
-            if (prev->fileName == curr->fileName) {
-                return false;
-            }
+            
             prev = prev->next;
+            p++;
+        }
+        if (p == c) {
+            prev = comhead->previous->head;
+            curr_SLL = curr->head;
+            while (prev != NULL) {
+                if (prev->fileVersion == curr_SLL->fileVersion) {
+                    return false;
+                }
+                prev = prev->next;
+            }
+        } else {
+            tf = true;
         }
         comhead = comhead->next;
         
     }
-    return true;
+    return tf;
 }
 
 // recursive function to copyLL to next commit
 singlyNode* copyLL(singlyNode* head_O) {
     if (head_O == NULL) {
-        return NULL;
+        return head_O;
     }
     singlyNode* clone = new singlyNode();
-    clone->fileName = head_O->fileName;
-    clone->fileVersion = head_O->fileVersion;
-    clone->next = copyLL(head_O->next);
+    if (hashAddress(head_O->fileVersion, 100) == hashAddress(head_O->fileName, 100)) {
+            clone->fileName = head_O->fileName;
+            clone->fileVersion = head_O->fileVersion;
+            clone->next = copyLL(head_O->next);
+            
+     }
     return clone;
+    
 }
+
+// checks new linked list in next commit for doubly added nodes
+void deleteRedundancies(singlyNode* head) {
+    singlyNode* a;
+    singlyNode* b;
+    singlyNode* reduc;
+    a = head;
+
+    while (a != NULL && a->next != NULL) {
+        b = a; 
+
+        while (b->next != NULL) {
+            if (a->fileVersion == b->next->fileVersion) {
+                reduc = b->next;
+                b->next = b->next->next;
+                delete reduc;
+            } else {
+                b = b->next;
+            }
+        }
+        a = a->next;
+    }
+}
+
 
 /* 
   the commit function takes the current SLL and checks if
@@ -354,36 +391,33 @@ singlyNode* copyLL(singlyNode* head_O) {
     next time the add() function is executed
 */
 void Git::commit() {
-    
     doublyNode* currentCommit = getCurrCommit(comHead);
+    if(currentCommit->head == NULL) {
+        cout << "Nothing to commit." << endl;
+        return;
+    }
     doublyNode* tempComHead = comHead;
-    cout << currentCommit->head->fileName << endl;
     singlyNode* curr_SLL = currentCommit->head;
     singlyNode* prev_SLL = NULL;
     string currFile[3]; 
-    cout << "currcom num: " << currentCommit->commitNumber << endl;
     if (currentCommit->commitNumber == 0) {
         while (curr_SLL != NULL) {
-            cout << "entered" << endl;
             split(curr_SLL->fileVersion, '.' , currFile, 3);
-            cout << curr_SLL->fileVersion << endl;
             copy(curr_SLL->fileName, curr_SLL->fileVersion);
             curr_SLL = curr_SLL->next;
         }
     } else {
         prev_SLL = currentCommit->previous->head;
-        debug_printLL(prev_SLL);
         while (tempComHead != NULL) {
             while (prev_SLL != NULL) {
-                cout << "prev_SLL:" << prev_SLL->fileVersion << endl;
-                cout << "curr_SLL:" << curr_SLL->fileVersion << endl;
                 if (prev_SLL->fileName == curr_SLL->fileName) {
                     if (hashAddress(prev_SLL->fileVersion, 100) != hashAddress(curr_SLL->fileName, 100)) {
                         string temp[3];
                         split(prev_SLL->fileVersion, '.', temp, 3);
                         curr_SLL->fileVersion = temp[0] + "." + to_string(stoi(temp[1]) + 1) + "." + temp[2];
-                        cout << "to_string(stoi(temp[1]) + 1) : " << to_string(stoi(temp[1]) + 1) << endl;
                         copy(curr_SLL->fileName, curr_SLL->fileVersion);
+
+                        
                     }
                 }
                 prev_SLL = prev_SLL->next;
@@ -397,14 +431,31 @@ void Git::commit() {
         }
         curr_SLL = currentCommit->head;
         tempComHead = comHead;
-        if (existsNowhere(currentCommit, curr_SLL)) {
-            copy(curr_SLL->fileName, curr_SLL->fileVersion);
+        if (existsNowhere(currentCommit, currentCommit)) {
+            while (curr_SLL != NULL) {
+                copy(curr_SLL->fileName, curr_SLL->fileVersion);
+                curr_SLL = curr_SLL->next;
+            }
         }
         
 
 
     }
     doublyNode* nextCom = insertLast(comHead, currentCommit, currentCommit->commitNumber);
+    curr_SLL = currentCommit->head;
+    if (currentCommit->previous != NULL) {
+        curr_SLL = currentCommit->head;
+        prev_SLL = currentCommit->previous->head;
+        nextCom->head = copyLL(currentCommit->head); 
+        
+        curr_SLL = currentCommit->head;
+    } else {
+        nextCom->head = copyLL(curr_SLL);
+    }
+    deleteRedundancies(nextCom->head);
+    
+
+
 }
 
 // copyCheck is the inverse of the copy() function.
